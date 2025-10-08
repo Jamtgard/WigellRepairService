@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="info">
+
+    <Properties>
+        <Property name="consoleLayout">
+            %style{%d{yyyy-MM-dd HH:mm:ss}}{blue} %highlight{%-5level} %style{%logger}{white} - %highlight{%style{%msg}{bold}}%n
+        </Property>
+        <Property name="fileLayout">
+            %d{yyyy-MM-dd HH:mm:ss} %-5level %logger - %msg%n
+        </Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${consoleLayout}" disableAnsi="false" noConsoleNoAnsi="false"/>
+        </Console>
+
+        <File name="LogFile" fileName="logs/actions.log" createOnDemand="true">
+            <PatternLayout pattern="${fileLayout}"/>
+        </File>
+    </Appenders>
+
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+        </Root>
+
+        <Logger name="actionlog" level="info" additivity="false">
+            <AppenderRef ref="LogFile"/>
+            <AppenderRef ref="Console"/>
+        </Logger>
+    </Loggers>
+
+</Configuration>

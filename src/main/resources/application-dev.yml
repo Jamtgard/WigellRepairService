@@ -18,6 +18,7 @@ spring:
   sql:
     init:
       mode: always
+      data-locations: classpath:data-dev.sql
 
 
 

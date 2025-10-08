@@ -38,3 +38,4 @@
 2025-10-08 11:26:26 INFO  actionlog - CREATE RepairTechnician id=999, name=Greta Gear, speciality=CAR, active=true
 2025-10-08 11:26:27 INFO  actionlog - DELETE RepairService id=777 name=Srv setActive=false
 2025-10-08 11:26:27 INFO  actionlog - CREATE RepairService id=null, name=Brake Service, type=CAR, priceSek=1499, active=true, technicianId=100, technicianName=ChosenTech
+2025-10-08 14:13:47 INFO  actionlog - CREATE RepairTechnician id=1, name=simon Simonsson, speciality=ELECTRONICS, active=true

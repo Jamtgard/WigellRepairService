@@ -24,7 +24,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     public CurrencyServiceImpl(
             @Qualifier("currencyConverterRestClient") RestClient client,
-            @Value("${wigell.currency.apiplugin.apiKey}") String apiKey,
+            @Value("${wigell.currency.apiplugin.api-key}") String apiKey,
             @Value("${wigell.currency.failOpen:false}") boolean failToOpen
     ) {
         this.client = client;

@@ -9,7 +9,7 @@ import org.springframework.web.client.RestClient;
 public class RestClientConfig {
 
     @Bean("currencyConverterRestClient")
-    public RestClient currencyConverterRestClient(@Value("${wigell.currency.apiplugin.baseUrl}") String baseUrl) {
+    public RestClient currencyConverterRestClient(@Value("${wigell.currency.apiplugin.base-url}") String baseUrl) {
         return RestClient.builder()
                 .baseUrl(baseUrl)
                 .build();

@@ -39,3 +39,21 @@
 2025-10-08 11:26:27 INFO  actionlog - DELETE RepairService id=777 name=Srv setActive=false
 2025-10-08 11:26:27 INFO  actionlog - CREATE RepairService id=null, name=Brake Service, type=CAR, priceSek=1499, active=true, technicianId=100, technicianName=ChosenTech
 2025-10-08 14:13:47 INFO  actionlog - CREATE RepairTechnician id=1, name=simon Simonsson, speciality=ELECTRONICS, active=true
+2025-10-09 09:47:29 INFO  actionlog - CREATE RepairTechnician id=999, name=Greta Gear, speciality=CAR, active=true
+2025-10-09 09:47:29 INFO  actionlog - DELETE RepairService id=777 name=Srv setActive=false
+2025-10-09 09:47:29 INFO  actionlog - CREATE RepairService id=null, name=Brake Service, type=CAR, priceSek=1499, active=true, technicianId=100, technicianName=ChosenTech
+2025-10-10 10:28:03 INFO  actionlog - CREATE Repairbooking by User 'sara' :
+	id: '16'
+	date: '2025-10-30'
+	status: 'BOOKED'
+	totalPriceSek: '1290.00'
+2025-10-10 10:28:11 INFO  actionlog - CREATE Repairbooking by User 'sara' :
+	id: '17'
+	date: '2025-10-30'
+	status: 'BOOKED'
+	totalPriceSek: '1490.00'
+2025-10-10 10:28:25 INFO  actionlog - CREATE Repairbooking by User 'sara' :
+	id: '18'
+	date: '2025-10-30'
+	status: 'BOOKED'
+	totalPriceSek: '1490.00'

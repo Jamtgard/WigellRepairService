@@ -12,7 +12,7 @@ import com.example.WigellRepairService.enums.ServiceType;
 import com.example.WigellRepairService.exceptions.ResourceNotFoundException;
 import com.example.WigellRepairService.repositories.RepairBookingRepository;
 import com.example.WigellRepairService.repositories.RepairServiceRepository;
-import com.example.WigellRepairService.repositories.RepairTechniciansRepository;
+import com.example.WigellRepairService.repositories.RepairTechnicianRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +33,9 @@ class RepairAdminServiceImplTest {
 
     @Mock RepairBookingRepository bookingRepository;
     @Mock RepairServiceRepository serviceRepository;
-    @Mock RepairTechniciansRepository techniciansRepository;
+    @Mock RepairTechnicianRepository techniciansRepository;
+
+    @Mock CurrencyService currencyService;
 
     @InjectMocks RepairAdminServiceImpl service;
 
@@ -48,90 +50,65 @@ class RepairAdminServiceImplTest {
         typeB = all.length > 1 ? all[1] : all[0];
     }
 
-    private RepairCustomer mkCustomer(long id, String name) {
-        RepairCustomer c = new RepairCustomer(name, new ArrayList<>());
-        c.setId(id);
-        return c;
-    }
-
-    private RepairTechnician mkTech(long id, String name, ServiceType speciality, boolean active) {
-        RepairTechnician t = new RepairTechnician(name, speciality, active);
-        t.setId(id);
-        t.setRepairTechniciansName(name);
-        t.setRepairTechniciansSpeciality(speciality);
-        t.setActive(active);
-        return t;
-    }
-
-    private RepairService mkService(Long id, String name, ServiceType type, BigDecimal price, RepairTechnician tech, boolean active) {
-        RepairService s = new RepairService(name, type, price, tech, active);
-        if (id != null) s.setId(id);
-        return s;
-    }
-
-    private RepairBooking mkBooking(long id, RepairCustomer c, RepairService s, LocalDate date, BigDecimal price, BookingStatus status) {
-        RepairBooking b = new RepairBooking(c, s, date, price);
-        b.setId(id);
-        b.setStatus(status);
-        return b;
-    }
-
-    // ---------------- listCanceledBookings ---------------------------------------------------------------------------
-
     @Test
     void listCanceledBookings_mapsEntities() {
-        RepairCustomer cust = mkCustomer(10L, "Alice");
+        RepairCustomer customer = mkCustomer(10L, "Alice");
         RepairTechnician tech = mkTech(20L, "Tech1", typeA, true);
-        RepairService srv = mkService(30L, "Srv", typeA, new BigDecimal("999"), tech, true);
-        RepairBooking b1 = mkBooking(1L, cust, srv, LocalDate.now(), new BigDecimal("999"), BookingStatus.CANCELED);
+        RepairService service = mkService(30L, "Srv", typeA, new BigDecimal("999"), tech, true);
+        RepairBooking booking = mkBooking(1L, customer, service, LocalDate.now(), new BigDecimal("999"), BookingStatus.CANCELED);
 
-        when(bookingRepository.findByStatusOrderByDateDesc(BookingStatus.CANCELED)).thenReturn(List.of(b1));
+        when(bookingRepository.findByStatusOrderByDateDesc(BookingStatus.CANCELED))
+                .thenReturn(List.of(booking));
 
-        List<RepairBookingDTO.Response> out = service.listCanceledBookings();
+        when(currencyService.convertToEuro(any(BigDecimal.class)))
+                .thenReturn(new BigDecimal("12.3"));
+
+        List<RepairBookingDTO.Response> out = this.service.listCanceledBookings();
 
         assertEquals(1, out.size());
-        var r = out.getFirst();
+        RepairBookingDTO.Response r = out.getFirst();
         assertEquals(1L, r.getBookingId());
         assertEquals(10L, r.getCustomerId());
         assertEquals(30L, r.getServiceId());
         assertEquals("Srv", r.getServiceName());
         assertEquals(BookingStatus.CANCELED, r.getStatus());
         assertEquals(new BigDecimal("999"), r.getPriceSek());
-    }
 
-    // ---------------- listUpcomingBookings ---------------------------------------------------------------------------
+        assertNotNull(r.getPriceEur());
+        verify(currencyService, atLeastOnce()).convertToEuro(any(BigDecimal.class));
+    }
 
     @Test
     void listUpcomingBookings_mapsEntities() {
-        RepairCustomer cust = mkCustomer(11L, "Bob");
+        RepairCustomer customer = mkCustomer(11L, "Bob");
         RepairTechnician tech = mkTech(21L, "Tech2", typeA, true);
-        RepairService srv = mkService(31L, "ServiceUp", typeA, new BigDecimal("100"), tech, true);
-        RepairBooking b = mkBooking(2L, cust, srv, LocalDate.now().plusDays(3), new BigDecimal("100"), BookingStatus.BOOKED);
+        RepairService service = mkService(31L, "ServiceUp", typeA, new BigDecimal("100"), tech, true);
+        RepairBooking booking = mkBooking(2L, customer, service, LocalDate.now().plusDays(3), new BigDecimal("100"), BookingStatus.BOOKED);
 
-        when(bookingRepository.findUpcoming(any(LocalDate.class))).thenReturn(List.of(b));
+        when(bookingRepository.findUpcoming(any(LocalDate.class))).thenReturn(List.of(booking));
 
-        var out = service.listUpcomingBookings();
+        List<RepairBookingDTO.Response> out = this.service.listUpcomingBookings();
         assertEquals(1, out.size());
         assertEquals(2L, out.getFirst().getBookingId());
-    }
 
-    // ---------------- listPastBookings -------------------------------------------------------------------------------
+        verify(currencyService, atLeastOnce()).convertToEuro(any(BigDecimal.class));
+    }
 
     @Test
     void listPastBookings_mapsEntities() {
-        RepairCustomer cust = mkCustomer(12L, "Carol");
+        RepairCustomer customer = mkCustomer(12L, "Carol");
         RepairTechnician tech = mkTech(22L, "Tech3", typeA, true);
-        RepairService srv = mkService(32L, "ServicePast", typeA, new BigDecimal("200"), tech, true);
-        RepairBooking b = mkBooking(3L, cust, srv, LocalDate.now().minusDays(5), new BigDecimal("200"), BookingStatus.BOOKED);
+        RepairService service = mkService(32L, "ServicePast", typeA, new BigDecimal("200"), tech, true);
+        RepairBooking b = mkBooking(3L, customer, service, LocalDate.now().minusDays(5), new BigDecimal("200"), BookingStatus.BOOKED);
 
         when(bookingRepository.findPast(any(LocalDate.class))).thenReturn(List.of(b));
 
-        var out = service.listPastBookings();
+        List<RepairBookingDTO.Response> out = this.service.listPastBookings();
         assertEquals(1, out.size());
         assertEquals(3L, out.getFirst().getBookingId());
-    }
 
-    // ---------------- addService -------------------------------------------------------------------------------------
+        verify(currencyService, atLeastOnce()).convertToEuro(any(BigDecimal.class));
+    }
 
     @Test
     void addService_saves_andReturnsSummary() {
@@ -149,16 +126,12 @@ class RepairAdminServiceImplTest {
         assertEquals("ChosenTech", out.technicianName());
     }
 
-    // ---------------- updateService: not found -----------------------------------------------------------------------
-
     @Test
     void updateService_throwsIfNotFound() {
         when(serviceRepository.findById(999L)).thenReturn(java.util.Optional.empty());
         var req = new RepairServiceDTO.Update(999L, null, null, null, null);
         assertThrows(ResourceNotFoundException.class, () -> service.updateService(req));
     }
-
-    // ---------------- updateService: update & tech-byte --------------------------------------------------------------
 
     @Test
     void updateService_updatesAndReassignsTechnicianWhenNeeded() {
@@ -200,8 +173,6 @@ class RepairAdminServiceImplTest {
         assertEquals("CorrectTech", out.technicianName());
     }
 
-    // ---------------- removeService ----------------------------------------------------------------------------------
-
     @Test
     void removeService_deactivatesActiveService_andReturnsMessage() {
         RepairTechnician tech = mkTech(1L, "T", typeA, true);
@@ -236,8 +207,6 @@ class RepairAdminServiceImplTest {
         assertThrows(ResourceNotFoundException.class, () -> service.removeService(1L));
     }
 
-    // ---------------- addTechnician ----------------------------------------------------------------------------------
-
     @Test
     void addTechnician_saves_andReturnsResponse() {
         when(techniciansRepository.save(any())).thenAnswer(inv -> {
@@ -255,8 +224,6 @@ class RepairAdminServiceImplTest {
         assertTrue(out.active());
     }
 
-    // ---------------- listTechnicians --------------------------------------------------------------------------------
-
     @Test
     void listTechnicians_mapsAll() {
         RepairTechnician t1 = mkTech(10L, "A", typeA, true);
@@ -271,8 +238,6 @@ class RepairAdminServiceImplTest {
         assertEquals("A", out.get(0).name());
         assertEquals("B", out.get(1).name());
     }
-
-    // ---------------- getTechnicianByType ----------------------------------------------------------------------------
 
     @Test
     void getTechnicianByType_returnsActiveWithSpeciality() {
@@ -294,4 +259,35 @@ class RepairAdminServiceImplTest {
 
         assertThrows(ResourceNotFoundException.class, () -> service.getTechnicianByType(typeA));
     }
+
+// ----- FUNCTIONAL ----------------------------------------------------------------------------------------------------
+
+    private RepairCustomer mkCustomer(long id, String name) {
+        RepairCustomer c = new RepairCustomer(name, new ArrayList<>());
+        c.setId(id);
+        return c;
+    }
+
+    private RepairTechnician mkTech(long id, String name, ServiceType speciality, boolean active) {
+        RepairTechnician t = new RepairTechnician(name, speciality, active);
+        t.setId(id);
+        t.setRepairTechniciansName(name);
+        t.setRepairTechniciansSpeciality(speciality);
+        t.setActive(active);
+        return t;
+    }
+
+    private RepairService mkService(Long id, String name, ServiceType type, BigDecimal price, RepairTechnician tech, boolean active) {
+        RepairService s = new RepairService(name, type, price, tech, active);
+        if (id != null) s.setId(id);
+        return s;
+    }
+
+    private RepairBooking mkBooking(long id, RepairCustomer c, RepairService s, LocalDate date, BigDecimal price, BookingStatus status) {
+        RepairBooking b = new RepairBooking(c, s, date, price);
+        b.setId(id);
+        b.setStatus(status);
+        return b;
+    }
+
 }

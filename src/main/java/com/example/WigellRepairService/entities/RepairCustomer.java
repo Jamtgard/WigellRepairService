@@ -6,14 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "repair_customer")
+@Table(name = "repair_customer",
+        uniqueConstraints = @UniqueConstraint(name = "uk_repair_customer_name", columnNames = "name")
+)
 public class RepairCustomer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)

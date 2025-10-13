@@ -36,6 +36,7 @@ public class RepairCustomerController {
         return ResponseEntity.ok(repairCustomerService.bookService(request, principal));
     }
 
+
     @PutMapping("/cancelbooking")
     public ResponseEntity<RepairBookingDTO.Response> cancelBooking(@Valid @RequestBody RepairBookingDTO.CancelRequest request, Principal principal) {
         return ResponseEntity.ok(repairCustomerService.cancelService(request, principal));

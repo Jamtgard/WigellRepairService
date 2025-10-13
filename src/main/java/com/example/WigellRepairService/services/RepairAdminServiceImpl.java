@@ -11,12 +11,14 @@ import com.example.WigellRepairService.enums.ServiceType;
 import com.example.WigellRepairService.exceptions.ResourceNotFoundException;
 import com.example.WigellRepairService.repositories.RepairBookingRepository;
 import com.example.WigellRepairService.repositories.RepairServiceRepository;
-import com.example.WigellRepairService.repositories.RepairTechniciansRepository;
+import com.example.WigellRepairService.repositories.RepairTechnicianRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -27,44 +29,42 @@ public class RepairAdminServiceImpl implements RepairAdminService {
 
     private final RepairBookingRepository bookingRepository;
     private final RepairServiceRepository serviceRepository;
-    private final RepairTechniciansRepository techniciansRepository;
+    private final RepairTechnicianRepository techniciansRepository;
+
+    private final CurrencyService currencyService;
 
     private static final Logger ACTION_LOGGER = LogManager.getLogger("actionlog");
 
     public RepairAdminServiceImpl(
             RepairBookingRepository bookingRepository,
             RepairServiceRepository serviceRepository,
-            RepairTechniciansRepository techniciansRepository) {
+            RepairTechnicianRepository techniciansRepository,
+            CurrencyService currencyService) {
         this.bookingRepository = bookingRepository;
         this.serviceRepository = serviceRepository;
         this.techniciansRepository = techniciansRepository;
+        this.currencyService = currencyService;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<RepairBookingDTO.Response> listCanceledBookings() {
         List<RepairBooking> bookings = bookingRepository.findByStatusOrderByDateDesc(BookingStatus.CANCELED);
-        return bookings.stream()
-                .map(this::toBookingResponse)
-                .toList();
+        return bookings.stream().map(this::toBookingResponse).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<RepairBookingDTO.Response> listUpcomingBookings() {
         List<RepairBooking> bookings = bookingRepository.findUpcoming(LocalDate.now());
-        return bookings.stream()
-                .map(this::toBookingResponse)
-                .toList();
+        return bookings.stream().map(this::toBookingResponse).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<RepairBookingDTO.Response> listPastBookings() {
         List<RepairBooking> bookings = bookingRepository.findPast(LocalDate.now());
-        return bookings.stream()
-                .map(this::toBookingResponse)
-                .toList();
+        return bookings.stream().map(this::toBookingResponse).toList();
     }
 
     @Override
@@ -191,9 +191,15 @@ public class RepairAdminServiceImpl implements RepairAdminService {
                 .toList();
     }
 
-// --- Response
+// ----- FUNCTIONAL ----------------------------------------------------------------------------------------------------
 
     private RepairBookingDTO.Response toBookingResponse(RepairBooking b) {
+        BigDecimal priceSek = b.getTotalPriceSek();
+        BigDecimal priceEur = currencyService.convertToEuro(priceSek);
+        if (priceEur != null) {
+            priceEur = priceEur.setScale(2, RoundingMode.HALF_UP);
+        }
+
         return new RepairBookingDTO.Response(
                 b.getId(),
                 b.getCustomer().getId(),
@@ -201,7 +207,8 @@ public class RepairAdminServiceImpl implements RepairAdminService {
                 b.getService().getRepairServiceName(),
                 b.getDate(),
                 b.getStatus(),
-                b.getTotalPriceSek()
+                priceSek,
+                priceEur
         );
     }
 
@@ -214,8 +221,6 @@ public class RepairAdminServiceImpl implements RepairAdminService {
                 s.getRepairServiceTechnician().getRepairTechniciansName()
         );
     }
-
-// --- Func
 
     @Transactional(readOnly = true)
     protected RepairTechnician getTechnicianByType(ServiceType serviceType) {

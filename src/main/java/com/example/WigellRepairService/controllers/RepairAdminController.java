@@ -24,6 +24,7 @@ public class RepairAdminController {
 
 //---- CRUD - Bookings ------------------------------------------------------------------------------------
 
+
     @GetMapping("/listcanceled")
     public ResponseEntity<List<RepairBookingDTO.Response>> listcanceled() {
         return ResponseEntity.ok(repairAdminService.listCanceledBookings());

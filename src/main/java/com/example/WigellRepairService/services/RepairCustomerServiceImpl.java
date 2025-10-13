@@ -42,7 +42,7 @@ public class RepairCustomerServiceImpl implements RepairCustomerService {
             RepairCustomerRepository repairCustomerRepository,
             RepairBookingRepository repairBookingRepository,
             RepairServiceRepository repairServiceRepository,
-            CurrencyServiceImpl currencyService) {
+            CurrencyService currencyService) {
         this.repairCustomerRepository = repairCustomerRepository;
         this.repairBookingRepository = repairBookingRepository;
         this.repairServiceRepository = repairServiceRepository;
@@ -87,7 +87,7 @@ public class RepairCustomerServiceImpl implements RepairCustomerService {
         booking.setStatus(BookingStatus.BOOKED);
         booking = repairBookingRepository.save(booking);
 
-        ACTION_LOGGER.info("CREATE Repairbooking by User '{}' :{}",
+        ACTION_LOGGER.info("CREATE RepairBooking by User '{}' :{}",
                 username,
                 LogMethods.logBuilder(booking, "id", "date", "status", "totalPriceSek")
         );
@@ -97,7 +97,6 @@ public class RepairCustomerServiceImpl implements RepairCustomerService {
     }
 
     @Override
-    @Transactional
     public RepairBookingDTO.Response cancelService(RepairBookingDTO.CancelRequest request, Principal principal) {
 
         String username = principal.getName();
@@ -125,7 +124,22 @@ public class RepairCustomerServiceImpl implements RepairCustomerService {
                 booking.getStatus()
         );
 
-        return toResponse(booking);
+        BigDecimal priceSek = booking.getTotalPriceSek();
+        BigDecimal priceEur = currencyService.convertToEuro(priceSek);
+        if (priceEur != null) {
+            priceEur = priceEur.setScale(2, RoundingMode.HALF_UP);
+        }
+
+        return new RepairBookingDTO.Response(
+                booking.getId(),
+                booking.getCustomer().getId(),
+                booking.getService().getId(),
+                booking.getService().getRepairServiceName(),
+                booking.getDate(),
+                booking.getStatus(),
+                priceSek,
+                priceEur
+        );
     }
 
     @Override
@@ -133,19 +147,26 @@ public class RepairCustomerServiceImpl implements RepairCustomerService {
     public List<RepairBookingDTO.Response> myBookings(Principal principal) {
 
         String username = principal.getName();
-
         List<RepairBooking> bookings = repairBookingRepository.findByCustomerNameIgnoreCaseOrderByDateDesc(username);
 
         return bookings.stream()
-                .map(b -> new RepairBookingDTO.Response(
-                        b.getId(),
-                        b.getCustomer().getId(),
-                        b.getService().getId(),
-                        b.getService().getRepairServiceName(),
-                        b.getDate(),
-                        b.getStatus(),
-                        b.getTotalPriceSek()
-                ))
+                .map(b -> {
+                    BigDecimal priceSek = b.getTotalPriceSek();
+                    BigDecimal priceEur = currencyService.convertToEuro(priceSek);
+                    if (priceEur != null) {
+                        priceEur = priceEur.setScale(2, RoundingMode.HALF_UP);
+                    }
+                    return new RepairBookingDTO.Response(
+                            b.getId(),
+                            b.getCustomer().getId(),
+                            b.getService().getId(),
+                            b.getService().getRepairServiceName(),
+                            b.getDate(),
+                            b.getStatus(),
+                            priceSek,
+                            priceEur
+                    );
+                })
                 .toList();
     }
 

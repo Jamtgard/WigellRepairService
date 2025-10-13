@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface RepairTechniciansRepository extends JpaRepository<RepairTechnician, Long> {
+public interface RepairTechnicianRepository extends JpaRepository<RepairTechnician, Long> {
 
     List<RepairTechnician> findByRepairTechniciansSpecialityAndActiveTrue(ServiceType speciality);
 

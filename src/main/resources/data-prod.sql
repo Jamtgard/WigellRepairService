@@ -1,5 +1,11 @@
-INSERT IGNORE INTO repair_customer (name)
-values
-    ('alex'),
-    ('sara'),
-    ('amanda');
+INSERT INTO repair_customer (name)
+SELECT 'alex' WHERE NOT EXISTS (SELECT 1 FROM repair_customer WHERE name='alex');
+
+INSERT INTO repair_customer (name)
+SELECT 'sara' WHERE NOT EXISTS (SELECT 1 FROM repair_customer WHERE name='sara');
+
+INSERT INTO repair_customer (name)
+SELECT 'amanda' WHERE NOT EXISTS (SELECT 1 FROM repair_customer WHERE name='amanda');
+
+INSERT INTO repair_customer (name)
+SELECT 'simon' WHERE NOT EXISTS (SELECT 1 FROM repair_customer WHERE name='simon');

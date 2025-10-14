@@ -25,12 +25,13 @@ public class RepairCustomer {
         this.bookings = bookings;
     }
 
-
     public Long getId() {return id;}
     public void setId(Long id) {this.id = id;}
 
     public String getName() { return name; }
     public void setName(String name) {}
+
     public List<RepairBooking> getBookings() { return bookings; }
     public void setBookings(List<RepairBooking> bookings) {}
+
 }

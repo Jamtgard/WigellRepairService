@@ -36,7 +36,6 @@ public class RepairAdminController {
     }
 
     @GetMapping("/listpast")
-    //todo - Order of date desc.
     public ResponseEntity<List<RepairBookingDTO.Response>> listPast() {
         return ResponseEntity.ok(repairAdminService.listPastBookings());
     }
@@ -46,7 +45,6 @@ public class RepairAdminController {
             @Valid @RequestBody RepairServiceDTO.Create request) {
         return ResponseEntity.ok(repairAdminService.addService(request));
     }
-
 
     @PutMapping("/updateservice")
     public ResponseEntity<RepairServiceDTO.Summary> updateService(

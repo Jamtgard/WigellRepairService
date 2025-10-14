@@ -1,6 +1,5 @@
 package com.example.WigellRepairService.repositories;
 
-import com.example.WigellRepairService.DTOs.RepairBookingDTO;
 import com.example.WigellRepairService.entities.RepairBooking;
 import com.example.WigellRepairService.enums.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,6 +1,5 @@
 package com.example.WigellRepairService.DTOs;
 
-
 import com.example.WigellRepairService.enums.BookingStatus;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
@@ -62,6 +61,5 @@ public final class RepairBookingDTO {
         public BigDecimal getPriceSek() {return priceSek;}
         public BigDecimal getPriceEur() {return priceEur;}
 
-        public void setPriceEur(BigDecimal priceEur) {this.priceEur = priceEur;}
     }
 }

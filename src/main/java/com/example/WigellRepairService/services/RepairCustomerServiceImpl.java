@@ -25,6 +25,8 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.example.WigellRepairService.utilities.LogMethods.*;
+
 
 @Service
 @Transactional
@@ -87,11 +89,11 @@ public class RepairCustomerServiceImpl implements RepairCustomerService {
         booking.setStatus(BookingStatus.BOOKED);
         booking = repairBookingRepository.save(booking);
 
-        ACTION_LOGGER.info("CREATE RepairBooking by User '{}' :{}",
+        ACTION_LOGGER.info(
+                "CREATE RepairBooking by user='{}'{}",
                 username,
-                LogMethods.logBuilder(booking, "id", "date", "status", "totalPriceSek")
+                logBuilder(booking, "id", "date", "status", "totalPriceSek")
         );
-
 
         return toResponse(booking, priceEur);
     }
@@ -117,11 +119,15 @@ public class RepairCustomerServiceImpl implements RepairCustomerService {
         booking.setStatus(BookingStatus.CANCELED);
         booking = repairBookingRepository.save(booking);
 
-        ACTION_LOGGER.info("CANCELLED RepairBooking by user '{}' : id={} \n\tstatus: '{}' -> '{}'",
+        RepairBooking before = new RepairBooking();
+        before.setStatus(oldStatus);
+        String delta = logUpdateBuilder(before, booking, "status");
+
+        ACTION_LOGGER.info(
+                "CANCELLED RepairBooking by user='{}' id={}{}",
                 username,
                 booking.getId(),
-                oldStatus,
-                booking.getStatus()
+                delta
         );
 
         BigDecimal priceSek = booking.getTotalPriceSek();
@@ -180,23 +186,6 @@ public class RepairCustomerServiceImpl implements RepairCustomerService {
     private RepairService findServiceById(Long id) {
         return repairServiceRepository.findById(id).orElseThrow(()->
                 new ResourceNotFoundException("Service", "id", id));
-    }
-
-    private RepairBooking findBookingById(Long id) {
-        return repairBookingRepository.findById(id).orElseThrow(()->
-                new ResourceNotFoundException("Booking", "id", id));
-    }
-
-    private RepairBookingDTO.Response toResponse(RepairBooking booking) {
-        return new RepairBookingDTO.Response(
-                booking.getId(),
-                booking.getCustomer().getId(),
-                booking.getService().getId(),
-                booking.getService().getRepairServiceName(),
-                booking.getDate(),
-                booking.getStatus(),
-                booking.getTotalPriceSek()
-        );
     }
 
     private RepairBookingDTO.Response toResponse(RepairBooking booking, BigDecimal priceEur) {

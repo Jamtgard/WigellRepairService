@@ -12,6 +12,7 @@ import com.example.WigellRepairService.exceptions.ResourceNotFoundException;
 import com.example.WigellRepairService.repositories.RepairBookingRepository;
 import com.example.WigellRepairService.repositories.RepairServiceRepository;
 import com.example.WigellRepairService.repositories.RepairTechnicianRepository;
+import static com.example.WigellRepairService.utilities.LogMethods.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -83,14 +84,15 @@ public class RepairAdminServiceImpl implements RepairAdminService {
         RepairService saved = serviceRepository.save(entity);
 
         ACTION_LOGGER.info(
-                "CREATE RepairService id={}, name={}, type={}, priceSek={}, active={}, technicianId={}, technicianName={}",
-                saved.getId(),
-                saved.getRepairServiceName(),
-                saved.getRepairServiceType(),
-                saved.getRepairServicePriceSek(),
-                saved.isActive(),
-                saved.getRepairServiceTechnician() != null ? saved.getRepairServiceTechnician().getId() : null,
-                saved.getRepairServiceTechnician() != null ? saved.getRepairServiceTechnician().getRepairTechniciansName() : null
+                "CREATE RepairService{}",
+                logBuilder(
+                        saved,
+                        "id",
+                        "repairServiceName",
+                        "repairServiceType",
+                        "repairServicePriceSek",
+                        "active"
+                )
         );
 
         return toSummary(saved);
@@ -102,16 +104,16 @@ public class RepairAdminServiceImpl implements RepairAdminService {
         RepairService entity = serviceRepository.findById(request.id()).orElseThrow(()->
                 new ResourceNotFoundException("Service", "id", request.id()));
 
+        RepairService beforeUpdate = new RepairService();
+        beforeUpdate.setRepairServiceName(entity.getRepairServiceName());
+        beforeUpdate.setRepairServiceType(entity.getRepairServiceType());
+        beforeUpdate.setRepairServicePriceSek(entity.getRepairServicePriceSek());
+        beforeUpdate.setActive(entity.isActive());
 
-        if(request.name() != null && !request.name().isBlank()) {
-            entity.setRepairServiceName(request.name());
-        }
-        if(request.priceSek() != null){
-            entity.setRepairServicePriceSek(request.priceSek());
-        }
-        if(request.active() != null){
-            entity.setActive(request.active());
-        }
+
+        if(request.name() != null && !request.name().isBlank()) {entity.setRepairServiceName(request.name());}
+        if(request.priceSek() != null){entity.setRepairServicePriceSek(request.priceSek());}
+        if(request.active() != null){entity.setActive(request.active());}
 
         if (request.type() != null) {
             ServiceType currentType = entity.getRepairServiceType();
@@ -129,6 +131,18 @@ public class RepairAdminServiceImpl implements RepairAdminService {
         }
 
         RepairService saved = serviceRepository.save(entity);
+
+        String delta = logUpdateBuilder(
+                beforeUpdate,
+                entity,
+                "repairServiceName",
+                "repairServiceType",
+                "repairServicePriceSek",
+                "active"
+        );
+
+        ACTION_LOGGER.info("UPDATE RepairService id={}{}", entity.getId(), delta);
+
         return toSummary(saved);
     }
 
@@ -141,10 +155,17 @@ public class RepairAdminServiceImpl implements RepairAdminService {
             entity.setActive(false);
             serviceRepository.save(entity);
 
-            // ✅ Lyckad "DELETE" (deactivate) – logga
-            ACTION_LOGGER.info("DELETE RepairService id={} name={} setActive=false",
-                    entity.getId(), entity.getRepairServiceName());
-
+            ACTION_LOGGER.info(
+                    "DELETE RepairService{}",
+                    logBuilder(
+                            entity,
+                            "id",
+                            "repairServiceName",
+                            "repairServiceType",
+                            "repairServicePriceSek",
+                            "active"
+                    )
+            );
             return "Service has been deactivated";
         }
 
@@ -162,11 +183,15 @@ public class RepairAdminServiceImpl implements RepairAdminService {
 
         RepairTechnician saved = techniciansRepository.save(technician);
 
-        ACTION_LOGGER.info("CREATE RepairTechnician id={}, name={}, speciality={}, active={}",
-                saved.getId(),
-                saved.getRepairTechniciansName(),
-                saved.getRepairTechniciansSpeciality(),
-                saved.isActive()
+        ACTION_LOGGER.info(
+                "CREATE RepairTechnician{}",
+                logBuilder(
+                        saved,
+                        "id",
+                        "repairTechniciansName",
+                        "repairTechniciansSpeciality",
+                        "active"
+                )
         );
 
         return new RepairTechnicianDTO.Response(

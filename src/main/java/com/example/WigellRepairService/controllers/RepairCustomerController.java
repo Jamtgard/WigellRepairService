@@ -2,7 +2,6 @@ package com.example.WigellRepairService.controllers;
 
 import com.example.WigellRepairService.DTOs.RepairBookingDTO;
 import com.example.WigellRepairService.DTOs.RepairServiceDTO;
-import com.example.WigellRepairService.services.RepairCustomerService;
 import com.example.WigellRepairService.services.RepairCustomerServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -35,7 +33,6 @@ public class RepairCustomerController {
             Principal principal) {
         return ResponseEntity.ok(repairCustomerService.bookService(request, principal));
     }
-
 
     @PutMapping("/cancelbooking")
     public ResponseEntity<RepairBookingDTO.Response> cancelBooking(@Valid @RequestBody RepairBookingDTO.CancelRequest request, Principal principal) {

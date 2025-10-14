@@ -27,17 +27,9 @@ public class CurrencyConversionException extends RuntimeException {
         this.responseBody = resposeBody;
     }
 
-    public String getProvider() {
-        return provider;
-    }
-    public String getEndpoint() {
-        return endpoint;
-    }
-    public Integer getStatusCode() {
-        return statusCode;
-    }
-    public String getResponseBody() {
-        return responseBody;
-    }
+    public String getProvider() {return provider;}
+    public String getEndpoint() {return endpoint;}
+    public Integer getStatusCode() {return statusCode;}
+    public String getResponseBody() {return responseBody;}
 
 }
